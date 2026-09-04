@@ -1,0 +1,24 @@
+# Secrets - NEVER push real keys
+.env
+
+# Runtime uploads / scan outputs
+uploads/
+strix_runs/
+data/vector.index
+data/vector_meta.pkl
+data/docs.json
+
+# Logs
+*.log
+uvicorn*.log
+boot*.log
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# OS
+.DS_Store
+Thumbs.db
