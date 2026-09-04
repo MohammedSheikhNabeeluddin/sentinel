@@ -1,44 +1,84 @@
-# AICTE Cyber Risk Quantification & Investment Optimization Platform + Strix
+# Sentinel — Continuous Cyber Risk & Financial Exposure
 
-Cloud-ready cyber risk analytics that ingests security data (Strix pentest findings, vuln scanners, SIEM, IAM, EDR, CSPM, asset inventory, threat intel) and uses AI/ML (NVIDIA) to compute financial risk (EAL, VaR) + optimize investments.
+AI-powered platform that scans your code like a friendly hacker, converts every bug into rupees of risk, and tells you exactly what to fix first and what it pays back.
 
-**Location:** `D:\hackathon\cyber-risk-platform`  
-**Strix:** `D:\hackathon\strix` (git clone) — used as pentest data source via `app/core/strix_integration.py`
+Paste a GitHub link, upload a ZIP, or pick a code folder directly. The app copies it into a locked practice area, runs safe attacks there, and shows danger scores, money at risk, fix plans, and compliance — your live app is never touched.
 
-## Quick Start
+## What it does
+
+**Three ways to scan**
+- GitHub link — shallow-clones public repos (private repos work with a one-time access token that is never stored) into an isolated copy and scans it.
+- ZIP upload — extracts archives and scans the contents.
+- Folder upload — pick a codebase folder straight from disk, no zipping needed.
+
+**Safe hacking simulation**
+- Primary engine is an AI pentest team in a Docker sandbox: recon, exploitation, and result chaining, all against the copied code only, with proof for every finding.
+- Without Docker or AI keys it falls back to a built-in static analyzer covering injection, broken access, secrets, server-side and client-side flaws.
+
+**Money math, not just severities**
+- Danger score per bug (0–100) from severity, exploitability, exposure, asset importance, threat activity, and protection in place.
+- Safety score per project from danger scores weighted by severity.
+- Money at risk per bug and total yearly expected loss from asset value, breach size, downtime, fines, and brand damage times likelihood. Worst-case bill from thousands of simulated years.
+
+**AI agents**
+- Risk advisor answering plain-English questions, fix planner with savings percent and cost, trend forecaster, document assistant with cited sources, and an attack defender that blocks hidden poison instructions in retrieved docs.
+
+**Investment optimizer**
+- Fix catalog with cost and savings, knapsack optimization for maximum risk reduction inside your budget, return-on-security-investment, and a curve showing where extra spending stops paying.
+
+**Compliance mapping**
+- Every finding auto-tagged to ISO 27001, NIST framework, CIS controls, RBI, and SEBI with pass-fail per control and an overall governance score.
+
+**Dashboards**
+- Check-a-project flow, executive overview (safety, money at risk, fix-today count, fix time, proved-by-testing), problems-found table with file, danger, loss and fix cost, fix planner, what-if simulator, and a RAG attack lab demo.
+
+## Tech stack
+
+- Frontend: React single-page app with charts and PDF export.
+- Backend: Python API server. Risk math with numerical libraries, vector search for documents.
+- AI: NVIDIA cloud API — large reasoning model for answers and plans, small safety model plus filters for defense, cloud embeddings with local fallback.
+- Scanning and infra: AI pentest engine in Docker, Git for cloning, local disk for practice copies and reports.
+
+## Quick start
+
 ```powershell
-cd D:\hackathon\cyber-risk-platform
-# 1. set NVIDIA key only (endpoint pre-filled in .env)
-notepad .env  # set NVIDIA_API_KEY=your_nvidia_key
-
-# 2. install
+Set-Location "D:\hackathon\cyber-risk-platform"
+Copy-Item .env.example .env   # then paste your NVIDIA_API_KEY into .env
 pip install -r requirements.txt
-
-# 3. run
-python -m app.main
-# or: uvicorn app.main:app --reload --port 8000
-
-# open http://127.0.0.1:8000
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8001
 ```
 
-## Features
-- **Upload codebase** (.zip/.tar) → auto-extract → run Strix (`strix -n --target <uploads>`) or fallback static analysis → feed to risk engine
-- **Risk Quantification Engine**: EAL = SLE × ARO, VaR, asset criticality, control effectiveness
-- **AI Decision Support**: NVIDIA `meta/llama-3.1-70b-instruct` via `integrate.api.nvidia.com/v1` — NL query, predictive analytics, recommendations, what-if simulation
-- **Investment Optimization**: 0/1 knapsack for max risk reduction per budget (₹1 crore default), ROSI = (ALE_before-ALE_after-cost)/cost, Investment vs Risk Reduction curve
-- **Compliance Mapping**: ISO 27001, NIST CSF, CIS, RBI, SEBI
-- **Dashboards**: Executive (Risk Score, Financial Exposure, Trend) + Technical (asset/control drill-down) + framework reports
+Open `http://127.0.0.1:8001/` (port 8000 is often taken by Docker Desktop — use 8001).
+Legacy dashboard remains at `/legacy`.
 
-## .env
-`NVIDIA_ENDPOINT=https://integrate.api.nvidia.com/v1` pre-filled. Just add `NVIDIA_API_KEY`.
+## Configuration
 
-## API
-- `POST /api/upload` — upload zip
-- `POST /api/scan/{upload_id}` — trigger Strix
-- `GET /api/risk/summary` — EAL/VaR
-- `POST /api/query` — NL query (NVIDIA)
-- `POST /api/simulate` — what-if
-- `GET /api/investment/optimize?budget=10000000`
-- `GET /api/compliance/{framework}`
+Only one secret is needed. Copy `.env.example` to `.env` and set:
 
-See `app/` for modules.
+```
+NVIDIA_API_KEY=your_key_from_build.nvidia.com
+```
+
+Endpoint and model ship pre-filled. Never commit `.env` — it is git-ignored.
+
+## Key API endpoints
+
+| Method | Endpoint | Purpose |
+|---|---|---|
+| POST | `/api/sentinel/scan-git` | Clone GitHub link + scan (`repo_url`, optional `access_token`) |
+| POST | `/api/sentinel/upload` | ZIP upload + scan |
+| POST | `/api/sentinel/upload-folder` | Raw folder upload + scan |
+| GET | `/api/sentinel/latest` | Latest project + findings (empty until first scan) |
+| GET | `/api/risk/summary` | Expected loss, worst-case, scores |
+| POST | `/api/query` | Plain-English risk question |
+| POST | `/api/simulate` | What-if (MFA, patching, delays) |
+| GET | `/api/investment/optimize?budget=10000000` | Best fixes for budget |
+| GET | `/api/compliance/{framework}` | ISO27001, NIST, CIS, RBI, SEBI |
+| POST | `/api/rag/query` | Document-grounded answer |
+| POST | `/api/attack/rag-poison` | Poisoned-vs-guarded demo |
+| POST | `/api/clear` | Reset all results |
+
+## Notes
+
+- Results appear only after a real scan of your codebase — no demo data is shipped.
+- Authorized use only: scan code you own or have written permission to test.
