@@ -15,4 +15,6 @@ rich==13.9.4
 aiofiles==24.1.0
 faiss-cpu==1.15.0
 sentence-transformers==6.0.1
+# CPU-only torch (keeps cloud builds small; same behavior, no GPU needed)
+--extra-index-url https://download.pytorch.org/whl/cpu
 torch>=2.2

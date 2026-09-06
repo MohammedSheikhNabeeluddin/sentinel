@@ -1,0 +1,18 @@
+# Sentinel frontend deploy (static build in frontend_dist/).
+# Backend (FastAPI) CANNOT run on Netlify - host it on Render/Railway/etc,
+# then put its URL below so /api/* calls proxy to it with no code changes.
+[build]
+  publish = "frontend_dist"
+
+# 1. API proxy - frontend keeps calling relative /api/*, Netlify forwards to backend.
+[[redirects]]
+  from = "/api/*"
+  to = "https://YOUR-BACKEND-HOST/:splat"
+  status = 200
+  force = true
+
+# 2. SPA fallback - app routes serve index.html (must stay AFTER /api/*).
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
