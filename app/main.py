@@ -518,3 +518,4 @@ if __name__ == "__main__":
     print(f"Upload dir: {strix_integration.upload_dir.resolve()}")
     print(f"NVIDIA endpoint: {os.getenv('NVIDIA_ENDPOINT')} model: {os.getenv('NVIDIA_MODEL')} key_set: {bool(os.getenv('NVIDIA_API_KEY'))}")
     uvicorn.run("app.main:app", host=host, port=port, reload=True)
+    # i am contributor 
