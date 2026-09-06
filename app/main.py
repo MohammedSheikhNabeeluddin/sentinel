@@ -271,9 +271,15 @@ async def sentinel_scan_git(req: SentinelGitReq):
     global LAST_FINDINGS, LAST_UPLOAD_ID, LAST_PROJECT
     repo_url = (req.repo_url or "").strip()
     token = (req.access_token or "").strip()
+    # accept owner/repo shorthand too
+    if re.match(r"^[^/\s]+/[^/\s]+$", repo_url) and "://" not in repo_url:
+        repo_url = "https://github.com/" + repo_url
+    # the old demo's fictional project never existed on GitHub - say so plainly
+    if "acme-corp" in repo_url.lower():
+        return {"error": "acme-corp/payments-api is a fictional demo name, not a real repository. Paste a real link (e.g. https://github.com/octocat/Hello-World), your own repo, or use Upload ZIP / Upload Folder."}
     # basic validation - only github http(s) allowed
     if not re.match(r"^https?://(www\.)?github\.com/[^/]+/[^/]+", repo_url):
-        return {"error": "Only public https://github.com/<owner>/<repo> links supported. Example: https://github.com/org/repo"}
+        return {"error": "Only public https://github.com/<owner>/<repo> links supported. Example: https://github.com/org/repo. Or type owner/repo shorthand, or use Upload ZIP / Upload Folder."}
     # derive name like acme-corp/payments-api
     name = re.sub(r"^https?://(www\.)?github\.com/", "", repo_url).strip().rstrip("/").removesuffix(".git")
     if not name or "/" not in name:
