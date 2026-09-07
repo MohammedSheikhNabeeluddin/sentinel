@@ -1,0 +1,12 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "https://YOUR-BACKEND-HOST/api/:path*" },
+    { "source": "/assets/:path*", "destination": "/frontend_dist/assets/:path*" },
+    { "source": "/sentinel-bridge.js", "destination": "/frontend_dist/sentinel-bridge.js" },
+    { "source": "/", "destination": "/frontend_dist/index.html" },
+    { "source": "/risk", "destination": "/frontend_dist/index.html" },
+    { "source": "/findings", "destination": "/frontend_dist/index.html" },
+    { "source": "/plan", "destination": "/frontend_dist/index.html" }
+  ]
+}
