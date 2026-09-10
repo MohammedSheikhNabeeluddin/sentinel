@@ -21,6 +21,28 @@
     window.__SENTINEL_REAL__ = cached;
   }
 
+  // Real risk history for the trend chart (sync from cache so first paint is real)
+  var HIST_KEY = "sentinel_hist_v1";
+  try {
+    var hraw = localStorage.getItem(HIST_KEY);
+    if (hraw) {
+      var harr = JSON.parse(hraw);
+      if (harr && harr.length) window.__SENTINEL_HISTORY__ = harr;
+    }
+  } catch (e2) {}
+  async function refreshHistory() {
+    try {
+      var r = await fetch("/api/risk/summary", { cache: "no-store" });
+      var j = await r.json();
+      var h = (j.history || []).map(function (x) { return Math.round(x.eal / 100000 * 10) / 10; });
+      if (h.length) {
+        window.__SENTINEL_HISTORY__ = h;
+        try { localStorage.setItem(HIST_KEY, JSON.stringify(h)); } catch (e3) {}
+      }
+    } catch (e4) {}
+  }
+  refreshHistory();
+
   async function refreshLatest() {
     try {
       var r = await fetch("/api/sentinel/latest", { cache: "no-store" });
@@ -202,7 +224,9 @@
         if (e.target && e.target.id === "sentinel-clear") {
           e.preventDefault();
           localStorage.removeItem(LS_KEY);
+          try { localStorage.removeItem(HIST_KEY); } catch (e5) {}
           window.__SENTINEL_REAL__ = null;
+          window.__SENTINEL_HISTORY__ = null;
           fetch("/api/clear", { method: "POST" }).finally(function () { window.location.reload(); });
         }
       });

@@ -109,9 +109,7 @@ class StrixIntegration:
                             break  # one per vuln type per file to avoid spam
                 if len(findings) > 50:
                     break
-        # If no findings, generate realistic mock from strix-like data
-        if not findings:
-            findings = self._mock_findings(target_path)
+        # No hardcoded demo findings: a clean scan honestly returns zero.
         return findings
 
     def _mock_findings(self, target_path: Path) -> List[Dict]:
@@ -199,7 +197,7 @@ class StrixIntegration:
         source = "strix"
         if findings is None:
             findings = self.fallback_static_scan(target)
-            source = findings[0].get("source","fallback_static") if findings else "mock"
+            source = findings[0].get("source","fallback_static") if findings else "clean"
         elapsed = time.time() - start
         # Save report
         report_path = self.runs_dir / f"{upload_id}.json"
