@@ -102,10 +102,12 @@ async def dashboard_legacy(request: Request):
         "rag_docs_count": len(rag_store.metas)
     })
 
+_NO_STORE = {"Cache-Control": "no-store"}
+
 def _serve_new_frontend():
     idx = frontend_dist / "index.html"
     if idx.exists():
-        return FileResponse(str(idx), media_type="text/html")
+        return FileResponse(str(idx), media_type="text/html", headers=_NO_STORE)
     return HTMLResponse("<h1>Frontend not found. Run from D:\\hackathon\\cyber-risk-platform</h1>", status_code=404)
 
 @app.get("/", response_class=HTMLResponse)
@@ -128,7 +130,7 @@ async def new_frontend_plan():
 async def sentinel_bridge():
     fp = frontend_dist / "sentinel-bridge.js"
     if fp.exists():
-        return FileResponse(str(fp), media_type="application/javascript")
+        return FileResponse(str(fp), media_type="application/javascript", headers=_NO_STORE)
     return HTMLResponse("// bridge missing", status_code=404)
 
 
@@ -136,7 +138,7 @@ async def sentinel_bridge():
 async def sentinel_bridge_v2():
     fp = frontend_dist / "sentinel-bridge.v2.js"
     if fp.exists():
-        return FileResponse(str(fp), media_type="application/javascript")
+        return FileResponse(str(fp), media_type="application/javascript", headers=_NO_STORE)
     return HTMLResponse("// bridge missing", status_code=404)
 
 @app.get("/favicon.png")
@@ -332,7 +334,7 @@ async def live_summary():
 async def live_page():
     fp = frontend_dist / "live.html"
     if fp.exists():
-        return FileResponse(str(fp), media_type="text/html")
+        return FileResponse(str(fp), media_type="text/html", headers=_NO_STORE)
     return HTMLResponse("<h1>Live page missing</h1>", status_code=404)
 
 class SentinelGitReq(BaseModel):

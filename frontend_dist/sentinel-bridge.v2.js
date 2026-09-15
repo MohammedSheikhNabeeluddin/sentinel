@@ -125,25 +125,30 @@
   }
 
   function wire() {
-    // Sidebar "Live" column below Fix planner - same icon + label style
-    var riskLink = document.querySelector('a[href="/risk"]');
-    if (riskLink && !document.getElementById("sentinel-live-link")) {
-      var live = document.createElement("a");
-      live.id = "sentinel-live-link";
-      live.href = "/live";
-      live.setAttribute("data-testid", "link-live");
-      live.className = riskLink.className;
-      var icon = document.createElement("span");
-      icon.className = "h-4 w-4";
-      icon.style.cssText = "display:inline-flex;width:16px;height:16px";
-      icon.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 2.2 20.2 5.6v6.2c0 4.7-3.3 8.7-8.2 10-4.9-1.3-8.2-5.3-8.2-10V5.6L12 2.2Z"/><path d="M9 12l2 2 4-4"/></svg>';
-      live.appendChild(icon);
-      live.appendChild(document.createTextNode("Live"));
-      if (window.location.pathname === "/live") {
-        live.className = live.className.replace(/text-muted-foreground/g, "text-foreground") + " bg-accent";
+    // Sidebar "Live" column below Fix planner - same icon + label style.
+    // NOTE: app uses hash routes (#/risk), so match sidebar links by label text.
+    if (!document.getElementById("sentinel-live-link")) {
+      var navLinks = Array.prototype.slice.call(document.querySelectorAll("aside a, nav a"));
+      var planner = null, ref = null;
+      for (var li = 0; li < navLinks.length; li++) {
+        var t = (navLinks[li].textContent || "").toLowerCase();
+        if (t.indexOf("fix planner") !== -1) planner = navLinks[li];
+        if (t.indexOf("overview") !== -1) ref = ref || navLinks[li];
       }
-      var plan = document.querySelector('a[href="/plan"]');
-      (plan || riskLink).insertAdjacentElement("afterend", live);
+      var anchor = planner || ref;
+      if (anchor) {
+        var live = document.createElement("a");
+        live.id = "sentinel-live-link";
+        live.href = "/live";
+        live.setAttribute("data-testid", "link-live");
+        live.className = anchor.className;
+        var icon = document.createElement("span");
+        icon.style.cssText = "display:inline-flex;width:16px;height:16px;flex:none";
+        icon.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 2.2 20.2 5.6v6.2c0 4.7-3.3 8.7-8.2 10-4.9-1.3-8.2-5.3-8.2-10V5.6L12 2.2Z"/><path d="M9 12l2 2 4-4"/></svg>';
+        live.appendChild(icon);
+        live.appendChild(document.createTextNode("Live"));
+        anchor.insertAdjacentElement("afterend", live);
+      }
     }
     var startBtn = document.querySelector('[data-testid="button-start-scan"]');
     var repoInput = document.querySelector('[data-testid="input-repo"]');
