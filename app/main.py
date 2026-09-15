@@ -330,6 +330,22 @@ async def live_summary():
     }
 
 
+@app.post("/api/live/demo")
+async def live_demo():
+    """Launch the visible-terminal attack demo (shop guarded by ECC + Swarm).
+
+    Opens a console window on this PC running one red-vs-blue round against
+    the guard proxy, so the whole attack is watchable live in a terminal.
+    """
+    import subprocess
+    subprocess.Popen(
+        'start "Sentinel Live Attack" cmd /k python D:\\hackathon\\redblue\\demo_terminal.py',
+        shell=True, cwd="D:\\hackathon\\redblue",
+    )
+    return {"launched": True, "watch": "terminal window 'Sentinel Live Attack'",
+            "target": GUARD_URL, "refresh": "/api/live/summary"}
+
+
 @app.get("/live", response_class=HTMLResponse)
 async def live_page():
     fp = frontend_dist / "live.html"

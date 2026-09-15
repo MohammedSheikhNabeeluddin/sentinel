@@ -34,6 +34,11 @@ a{color:var(--teal)}
     <span class="mut" style="margin-left:auto" id="upd">loading…</span>
   </div>
   <h2 style="margin-top:4px">Live Shield — Juice Shop behind the guard <span class="mut">(auto-refresh 10s)</span></h2>
+  <div class="card" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+    <button id="demoBtn" style="background:var(--teal);border:0;border-radius:8px;padding:10px 18px;font-weight:700;cursor:pointer">▶ Run Attack Demo</button>
+    <span class="mut">Fires live attacks through the ECC + Swarm guard — watch the terminal window, results land below.</span>
+  </div>
+  <div class="card" style="margin-top:12px;background:#05070a"><pre id="demoTerm" style="margin:0;font-family:monospace;font-size:12px;line-height:1.6;white-space:pre-wrap;color:#d1d5db">terminal idle — press Run Attack Demo.</pre></div>
   <div class="grid" id="kpis"></div>
   <h2>Latest round</h2>
   <div class="card" id="round">—</div>
@@ -66,6 +71,23 @@ async function tick(){
 }
 function kpi(l,v){ return `<div class="card"><div class="lab">${l}</div><div class="big" style="font-size:20px">${v}</div></div>`; }
 tick(); setInterval(tick, 10000);
+document.getElementById('demoBtn').addEventListener('click', async () => {
+  const term = document.getElementById('demoTerm');
+  const btn = document.getElementById('demoBtn');
+  btn.disabled = true;
+  term.textContent = '$ sentinel demo --target guard:8080\nopening terminal window "Sentinel Live Attack"...\n';
+  try {
+    await fetch('/api/live/demo', {method:'POST'});
+    term.textContent += 'attack running — watch the terminal, streaming results here shortly...\n';
+    for (let i = 0; i < 6; i++) {
+      await new Promise(r => setTimeout(r, 5000));
+      await tick();
+      const dec = document.getElementById('dec').innerText.split('\n').slice(0, 6).join('\n');
+      term.textContent = '$ sentinel demo --target guard:8080\n' + dec + '\n(full stream in the terminal window)';
+    }
+  } catch(e) { term.textContent += 'demo failed to start\n'; }
+  btn.disabled = false;
+});
 </script>
 </body>
 </html>
