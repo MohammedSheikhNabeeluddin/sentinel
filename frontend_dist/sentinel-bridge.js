@@ -125,6 +125,17 @@
   }
 
   function wire() {
+    // Sidebar "Live" column next to Overview/Problems/Planner
+    var riskLink = document.querySelector('a[href="/risk"]');
+    if (riskLink && !document.getElementById("sentinel-live-link")) {
+      var live = document.createElement("a");
+      live.id = "sentinel-live-link";
+      live.href = "/live";
+      live.textContent = "Live";
+      live.className = riskLink.className;
+      var plan = document.querySelector('a[href="/plan"]');
+      (plan || riskLink).insertAdjacentElement("afterend", live);
+    }
     var startBtn = document.querySelector('[data-testid="button-start-scan"]');
     var repoInput = document.querySelector('[data-testid="input-repo"]');
     var zipBtn = document.querySelector('[data-testid="button-upload-zip"]');

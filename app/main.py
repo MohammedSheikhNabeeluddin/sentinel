@@ -40,6 +40,25 @@ if static_dir.exists():
 # New Sentinel frontend assets (D:\\hackathon\\index.html build)
 if (frontend_dist / "assets").exists():
     app.mount("/assets", StaticFiles(directory=str(frontend_dist / "assets")), name="frontend-assets")
+
+# Live shield inputs (guard proxy + red-blue loop logs)
+LIVE_DIR = Path("D:/hackathon/redblue")
+SHOP_URL = "http://127.0.0.1:3000"
+GUARD_URL = "http://127.0.0.1:8080"
+
+
+def _tail_jsonl(path: Path, n: int = 20):
+    try:
+        lines = path.read_text(encoding="utf-8", errors="ignore").strip().splitlines()
+        out = []
+        for ln in lines[-n:]:
+            try:
+                out.append(json.loads(ln))
+            except Exception:
+                continue
+        return out
+    except Exception:
+        return []
 templates = Jinja2Templates(directory=str(templates_dir))
 
 # Global state for last scan findings - no hardcoded demo project.
@@ -253,6 +272,60 @@ async def sentinel_latest():
 @app.get("/api/sentinel/project")
 async def sentinel_project():
     return {"project": LAST_PROJECT, "upload_id": LAST_UPLOAD_ID}
+
+# --- Live shield column (guard proxy + red-blue loop) ---
+def _url_up(url: str) -> bool:
+    try:
+        import urllib.request
+        with urllib.request.urlopen(url + "/", timeout=5) as r:
+            return 200 <= r.status < 500
+    except Exception:
+        return False
+
+
+@app.get("/api/live/summary")
+async def live_summary():
+    decisions = _tail_jsonl(LIVE_DIR / "guard.jsonl", 200)
+    rounds = _tail_jsonl(LIVE_DIR / "redblue.jsonl", 10)
+    blocked = sum(1 for d in decisions if d.get("decision") == "deny")
+    allowed = sum(1 for d in decisions if d.get("decision") == "allow")
+    by_guard: Dict[str, int] = {}
+    for d in decisions:
+        if d.get("decision") == "deny":
+            g = str(d.get("guard", "unknown"))
+            by_guard[g] = by_guard.get(g, 0) + 1
+    last_round = rounds[-1] if rounds else None
+    return {
+        "guard_up": _url_up(GUARD_URL),
+        "shop_up": _url_up(SHOP_URL),
+        "guard_url": GUARD_URL,
+        "shop_url": SHOP_URL,
+        "decisions_seen": len(decisions),
+        "blocked": blocked,
+        "allowed": allowed,
+        "by_guard": by_guard,
+        "last_round": ({
+            "round": last_round.get("round"),
+            "ts": last_round.get("ts"),
+            "proved": sum(1 for p in last_round.get("probes", []) if p.get("proved")),
+            "total": len(last_round.get("probes", [])),
+            "denied": last_round.get("session", {}).get("denied", 0),
+        } if last_round else None),
+        "recent_decisions": decisions[-15:][::-1],
+        "recent_rounds": [{
+            "round": r.get("round"), "ts": r.get("ts"),
+            "proved": sum(1 for p in r.get("probes", []) if p.get("proved")),
+            "total": len(r.get("probes", [])),
+        } for r in rounds[-8:][::-1]],
+    }
+
+
+@app.get("/live", response_class=HTMLResponse)
+async def live_page():
+    fp = frontend_dist / "live.html"
+    if fp.exists():
+        return FileResponse(str(fp), media_type="text/html")
+    return HTMLResponse("<h1>Live page missing</h1>", status_code=404)
 
 class SentinelGitReq(BaseModel):
     repo_url: str
