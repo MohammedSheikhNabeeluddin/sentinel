@@ -131,6 +131,14 @@ async def sentinel_bridge():
         return FileResponse(str(fp), media_type="application/javascript")
     return HTMLResponse("// bridge missing", status_code=404)
 
+
+@app.get("/sentinel-bridge.v2.js")
+async def sentinel_bridge_v2():
+    fp = frontend_dist / "sentinel-bridge.v2.js"
+    if fp.exists():
+        return FileResponse(str(fp), media_type="application/javascript")
+    return HTMLResponse("// bridge missing", status_code=404)
+
 @app.get("/favicon.png")
 async def favicon():
     # avoid 404 noise; return empty
