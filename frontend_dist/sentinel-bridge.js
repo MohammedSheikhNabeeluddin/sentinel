@@ -125,14 +125,23 @@
   }
 
   function wire() {
-    // Sidebar "Live" column next to Overview/Problems/Planner
+    // Sidebar "Live" column below Fix planner - same icon + label style
     var riskLink = document.querySelector('a[href="/risk"]');
     if (riskLink && !document.getElementById("sentinel-live-link")) {
       var live = document.createElement("a");
       live.id = "sentinel-live-link";
       live.href = "/live";
-      live.textContent = "Live";
+      live.setAttribute("data-testid", "link-live");
       live.className = riskLink.className;
+      var icon = document.createElement("span");
+      icon.className = "h-4 w-4";
+      icon.style.cssText = "display:inline-flex;width:16px;height:16px";
+      icon.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 2.2 20.2 5.6v6.2c0 4.7-3.3 8.7-8.2 10-4.9-1.3-8.2-5.3-8.2-10V5.6L12 2.2Z"/><path d="M9 12l2 2 4-4"/></svg>';
+      live.appendChild(icon);
+      live.appendChild(document.createTextNode("Live"));
+      if (window.location.pathname === "/live") {
+        live.className = live.className.replace(/text-muted-foreground/g, "text-foreground") + " bg-accent";
+      }
       var plan = document.querySelector('a[href="/plan"]');
       (plan || riskLink).insertAdjacentElement("afterend", live);
     }
